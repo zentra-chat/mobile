@@ -1,2 +1,2 @@
 # Lazulite
-Celestite mobile app made with flutter!
+Zentra mobile app made with flutter!
