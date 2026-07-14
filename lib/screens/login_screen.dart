@@ -5,6 +5,7 @@ import '../config/app_config.dart';
 import '../data/api/api_client.dart';
 import '../providers/auth_provider.dart';
 import '../providers/instance_provider.dart';
+import 'instances_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -68,10 +69,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Sign in to ${instance.name}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Sign in to ${instance.name}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const InstancesScreen(),
+                        ),
+                      ),
+                      child: const Text('Change'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 TextField(

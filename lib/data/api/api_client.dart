@@ -407,6 +407,26 @@ class ApiClient {
 
   // Status
 
+  // Probes a backend for reachability. Mirrors the web client, hitting the
+  // root /health endpoint (not /api/v1) so it works before auth.
+  Future<bool> checkHealth(String baseUrl) async {
+    final trimmed = baseUrl.replaceAll(RegExp(r'/+\$'), '');
+    try {
+      final response = await _dio.get(
+        '$trimmed/health',
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+          extra: {'_noAuthRetry': true},
+        ),
+      );
+      return response.statusCode != null && response.statusCode! < 500;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> updateStatus(String status) async {
     await _run(
       () => _dio.put('/users/me/status', data: {'status': status}),

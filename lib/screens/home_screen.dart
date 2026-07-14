@@ -55,28 +55,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await ref.read(authProvider.notifier).logout();
-  }
-
   @override
   Widget build(BuildContext context) {
     final communityId = ref.watch(selectedCommunityIdProvider);
     final channelId = ref.watch(selectedChannelIdProvider);
-    final user = ref.watch(authProvider).session?.user;
+    final userId = ref.watch(authProvider).session?.user.id;
+
+    String? title;
+    if (communityId != null && channelId != null) {
+      title = ref.watch(channelsProvider(communityId)).maybeWhen(
+        data: (list) {
+          for (final channel in list) {
+            if (channel.id == channelId) return '#${channel.name}';
+          }
+          return null;
+        },
+        orElse: () => null,
+      );
+    }
+    title ??= ref.watch(communitiesProvider).maybeWhen(
+      data: (list) {
+        for (final community in list) {
+          if (community.id == communityId) return community.name;
+        }
+        return null;
+      },
+      orElse: () => null,
+    );
 
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        title: Text(user?.effectiveName ?? 'Zentra'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-            tooltip: 'Sign out',
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(title ?? 'Zentra')),
       drawer: Drawer(
         child: _showChannels && communityId != null
             ? ChannelList(
@@ -97,7 +106,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ? const Center(child: Text('Select a channel to start chatting'))
                 : MessageList(
                     channelId: channelId,
-                    currentUserId: user?.id,
+                    currentUserId: userId,
                     scrollController: _scrollController,
                     onChanged: _scrollToBottom,
                   ),

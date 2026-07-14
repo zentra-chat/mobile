@@ -21,12 +21,46 @@ class Instance {
     this.lastChecked,
   });
 
-  String get apiBaseUrl => '${url.replaceAll(RegExp(r'/+$$'), '')}/api/v1';
+  String get apiBaseUrl => '${url.replaceAll(RegExp(r'/+\$'), '')}/api/v1';
 
   String get wsUrl {
-    final trimmed = url.replaceAll(RegExp(r'/+$$'), '');
+    final trimmed = url.replaceAll(RegExp(r'/+\$'), '');
     final ws = trimmed.replaceFirst(RegExp(r'^http'), 'ws');
     return '$ws/ws';
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'url': url,
+        'name': name,
+        if (iconUrl != null) 'iconUrl': iconUrl,
+        'isOnline': isOnline,
+        if (lastChecked != null) 'lastChecked': lastChecked,
+      };
+
+  factory Instance.fromJson(Map<String, dynamic> json) => Instance(
+        id: json['id'] as String,
+        url: json['url'] as String,
+        name: json['name'] as String,
+        iconUrl: json['iconUrl'] as String?,
+        isOnline: json['isOnline'] as bool? ?? false,
+        lastChecked: json['lastChecked'] as String?,
+      );
+
+  // Builds an instance from a user-entered URL, normalising the scheme and
+  // stripping trailing slashes. Falls back to the host as the display name.
+  factory Instance.fromUrl(String url, {String? name, String? id}) {
+    var trimmed = url.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      trimmed = 'https://$trimmed';
+    }
+    trimmed = trimmed.replaceAll(RegExp(r'/+\$'), '');
+    final host = Uri.tryParse(trimmed)?.host ?? trimmed;
+    return Instance(
+      id: id ?? 'inst_${DateTime.now().microsecondsSinceEpoch}',
+      url: trimmed,
+      name: name?.trim().isNotEmpty == true ? name!.trim() : host,
+    );
   }
 
   Instance copyWith({

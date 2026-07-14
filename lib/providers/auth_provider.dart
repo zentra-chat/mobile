@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/app_config.dart';
 import '../data/api/api_client.dart';
 import '../data/models/index.dart';
 import '../data/storage/token_storage.dart';
 import '../data/ws/websocket_client.dart';
 import 'api_provider.dart';
+import 'instance_provider.dart';
 
 enum AuthStatus { unauthenticated, authenticating, authenticated }
 
@@ -44,9 +46,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
   ApiClient get _api => ref.read(apiClientProvider);
   WebSocketClient get _ws => ref.read(websocketProvider);
 
-  // Restore a persisted session on app start, if one exists.
+  String? get _activeId => ref.read(activeInstanceIdProvider);
+
+  // Restore persisted instances + the session for the active instance on
+  // startup. Seeds the default instance (from env) when storage is empty so
+  // the app is usable on first launch.
   Future<void> init() async {
-    final session = await _storage.loadSession();
+    final storage = ref.read(instanceStorageProvider);
+    var instances = await storage.loadInstances();
+    if (instances.isEmpty) {
+      instances = [AppConfig.defaultInstance];
+      await storage.saveInstances(instances);
+    }
+    var activeId = await storage.loadActiveId();
+    if (activeId == null || !instances.any((instance) => instance.id == activeId)) {
+      activeId = instances.first.id;
+      await storage.saveActiveId(activeId);
+    }
+    // Bring the providers in sync so the UI reflects persisted state.
+    ref.read(instancesProvider.notifier).setAll(instances);
+    ref.read(activeInstanceIdProvider.notifier).set(activeId);
+
+    final session = await _storage.loadSession(activeId);
     if (session == null) return;
     state = state.copyWith(status: AuthStatus.authenticated, session: session);
     _ws.connect();
@@ -60,10 +81,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         password: password,
       ));
       final session = Session.fromAuth(response);
+      final activeId = _activeId ?? AppConfig.defaultInstance.id;
       // Persistence is best-effort: if the secure store is unavailable the
       // session still lives in memory so the app stays usable.
       try {
-        await _storage.saveSession(session);
+        await _storage.saveSession(activeId, session);
       } catch (e) {
         debugPrint('Failed to persist session, continuing in-memory: $e');
       }
@@ -100,7 +122,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final response = await _api.refreshToken(session.refreshToken);
       final next = Session.fromAuth(response);
-      await _storage.saveSession(next);
+      final activeId = _activeId ?? AppConfig.defaultInstance.id;
+      await _storage.saveSession(activeId, next);
       state = state.copyWith(session: next);
       return true;
     } catch (_) {
@@ -126,8 +149,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _clearLocal();
   }
 
+  // Switches the active instance, carrying over that instance's own session.
+  // If the target instance has no stored session the user is taken to login.
+  Future<void> switchInstance(String id) async {
+    if (id == _activeId) return;
+    _ws.disconnect();
+    ref.read(activeInstanceIdProvider.notifier).set(id);
+    final session = await _storage.loadSession(id);
+    if (session == null) {
+      state = const AuthState();
+      return;
+    }
+    state = state.copyWith(
+      status: AuthStatus.authenticated,
+      session: session,
+    );
+    _ws.connect();
+  }
+
   Future<void> _clearLocal() async {
-    await _storage.clear();
+    final activeId = _activeId;
+    if (activeId != null) await _storage.clear(activeId);
     state = const AuthState();
   }
 

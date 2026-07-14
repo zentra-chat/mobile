@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/auth_provider.dart';
+import 'instances_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -12,6 +13,13 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
+          ListTile(
+            leading: const Icon(Icons.dns),
+            title: const Text('Manage Instances'),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const InstancesScreen()),
+            ),
+          ),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Sign out'),
