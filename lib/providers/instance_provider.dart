@@ -11,14 +11,13 @@ final instanceStorageProvider =
     Provider<InstanceStorage>((ref) => SecureInstanceStorage());
 
 final instancesProvider =
-    StateNotifierProvider<InstancesNotifier, List<Instance>>(
-  (ref) => InstancesNotifier(ref),
+    NotifierProvider<InstancesNotifier, List<Instance>>(
+  InstancesNotifier.new,
 );
 
-class InstancesNotifier extends StateNotifier<List<Instance>> {
-  InstancesNotifier(this.ref) : super(const []);
-
-  final Ref ref;
+class InstancesNotifier extends Notifier<List<Instance>> {
+  @override
+  List<Instance> build() => const [];
 
   void setAll(List<Instance> instances) {
     state = instances;
@@ -57,14 +56,13 @@ class InstancesNotifier extends StateNotifier<List<Instance>> {
 }
 
 final activeInstanceIdProvider =
-    StateNotifierProvider<ActiveInstanceNotifier, String?>(
-  (ref) => ActiveInstanceNotifier(ref),
+    NotifierProvider<ActiveInstanceNotifier, String?>(
+  ActiveInstanceNotifier.new,
 );
 
-class ActiveInstanceNotifier extends StateNotifier<String?> {
-  ActiveInstanceNotifier(this.ref) : super(null);
-
-  final Ref ref;
+class ActiveInstanceNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
 
   void set(String? id) {
     state = id;

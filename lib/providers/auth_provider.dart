@@ -35,10 +35,9 @@ class AuthState {
   }
 }
 
-class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(this.ref) : super(const AuthState());
-
-  final Ref ref;
+class AuthNotifier extends Notifier<AuthState> {
+  @override
+  AuthState build() => const AuthState();
 
   bool _refreshing = false;
 
@@ -177,4 +176,4 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final authProvider =
-    StateNotifierProvider<AuthNotifier, AuthState>((ref) => AuthNotifier(ref));
+    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

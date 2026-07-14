@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/models/index.dart';
 import '../data/api/api_client.dart';
 import '../data/storage/token_storage.dart';
 import '../data/ws/websocket_client.dart';

@@ -142,7 +142,7 @@ class _BackgroundPainter extends CustomPainter {
         final distance = sqrt(dx * dx + dy * dy);
         if (distance < _maxDistance) {
           final opacity = ((_maxDistance - distance) / _maxDistance) * 0.3;
-          linePaint.color = _color.withOpacity(opacity);
+          linePaint.color = _color.withValues(alpha: opacity);
           canvas.drawLine(
             Offset(particles[i].x, particles[i].y),
             Offset(particles[j].x, particles[j].y),
@@ -152,7 +152,7 @@ class _BackgroundPainter extends CustomPainter {
       }
     }
 
-    final dotPaint = Paint()..color = _color.withOpacity(0.8);
+    final dotPaint = Paint()..color = _color.withValues(alpha: 0.8);
     for (final particle in particles) {
       canvas.drawCircle(Offset(particle.x, particle.y), particle.size, dotPaint);
     }

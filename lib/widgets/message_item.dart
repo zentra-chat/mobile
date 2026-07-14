@@ -144,7 +144,7 @@ class _AttachmentTile extends StatelessWidget {
                 attachment.url,
                 width: 240,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _fileChip(theme),
+                errorBuilder: (_, _, _) => _fileChip(theme),
               ),
             )
           : _fileChip(theme),

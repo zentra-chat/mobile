@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # State management
-  flutter_riverpod: ^2.5.1
+  flutter_riverpod: ^3.3.2
 
   # HTTP client with interceptors used for auth + token refresh
   dio: ^5.7.0
@@ -45,7 +45,7 @@ dependencies:
   web_socket_channel: ^3.0.1
 
   # Persists auth tokens securely on device
-  flutter_secure_storage: ^9.2.2
+  flutter_secure_storage: ^10.3.1
 
 dev_dependencies:
   flutter_test:

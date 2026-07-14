@@ -37,8 +37,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _selectCommunity(String id) async {
-    ref.read(selectedCommunityIdProvider.notifier).state = id;
-    ref.read(selectedChannelIdProvider.notifier).state = null;
+    ref.read(selectedCommunityIdProvider.notifier).set(id);
+    ref.read(selectedChannelIdProvider.notifier).set(null);
     setState(() => _showChannels = true);
   }
 
@@ -47,7 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _selectChannel(String communityId, String channelId) async {
-    ref.read(selectedChannelIdProvider.notifier).state = channelId;
+    ref.read(selectedChannelIdProvider.notifier).set(channelId);
     try {
       await ref.read(apiClientProvider).markChannelRead(channelId);
     } catch (_) {

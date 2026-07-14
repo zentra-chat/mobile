@@ -10,8 +10,16 @@ final communitiesProvider = FutureProvider<List<Community>>((ref) async {
   return api.getMyCommunities();
 });
 
-final selectedCommunityIdProvider = StateProvider<String?>((ref) => null);
-final selectedChannelIdProvider = StateProvider<String?>((ref) => null);
+class _StringNullNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? value) => state = value;
+}
+
+final selectedCommunityIdProvider =
+    NotifierProvider<_StringNullNotifier, String?>(_StringNullNotifier.new);
+final selectedChannelIdProvider =
+    NotifierProvider<_StringNullNotifier, String?>(_StringNullNotifier.new);
 
 final channelsProvider =
     FutureProvider.family<List<Channel>, String>((ref, communityId) async {
@@ -21,18 +29,23 @@ final channelsProvider =
 
 // Holds the live message list for a single channel. Seeds from REST history
 // then applies gateway events (create / update / delete) as they arrive.
-class ChannelMessagesNotifier extends StateNotifier<List<Message>> {
-  ChannelMessagesNotifier(this.ref, this.channelId) : super(const []) {
-    _load();
-    // Listen to the gateway stream directly rather than via a StreamProvider,
-    // which wraps a broadcast stream and can silently drop events.
-    _subscription = ref.read(websocketProvider).events.listen(_handleEvent);
-    ref.read(websocketProvider).subscribe(channelId);
-  }
+class ChannelMessagesNotifier extends Notifier<List<Message>> {
+  ChannelMessagesNotifier(this.channelId);
 
-  final Ref ref;
   final String channelId;
   late final StreamSubscription<WebSocketEvent> _subscription;
+
+  @override
+  List<Message> build() {
+    _load();
+    _subscription = ref.read(websocketProvider).events.listen(_handleEvent);
+    ref.read(websocketProvider).subscribe(channelId);
+    ref.onDispose(() {
+      _subscription.cancel();
+      ref.read(websocketProvider).unsubscribe(channelId);
+    });
+    return const [];
+  }
 
   Future<void> _load() async {
     try {
@@ -83,15 +96,9 @@ class ChannelMessagesNotifier extends StateNotifier<List<Message>> {
     ref.read(websocketProvider).sendTyping(channelId);
   }
 
-  @override
-  void dispose() {
-    _subscription.cancel();
-    ref.read(websocketProvider).unsubscribe(channelId);
-    super.dispose();
-  }
 }
 
-final channelMessagesProvider = StateNotifierProvider.autoDispose
+final channelMessagesProvider = NotifierProvider
     .family<ChannelMessagesNotifier, List<Message>, String>(
-  (ref, channelId) => ChannelMessagesNotifier(ref, channelId),
+  ChannelMessagesNotifier.new,
 );

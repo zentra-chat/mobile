@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
-import '../data/models/index.dart';
 import '../providers/auth_provider.dart';
 import '../providers/api_provider.dart';
 import '../providers/instance_provider.dart';
@@ -47,7 +46,7 @@ class _InstancesScreenState extends ConsumerState<InstancesScreen> {
     final url = _urlController.text.trim();
     if (url.isEmpty || _checkOk != true) return;
     final notifier = ref.read(instancesProvider.notifier);
-    final existing = notifier.state.where((i) => i.url == Instance.fromUrl(url).url);
+    final existing = ref.read(instancesProvider).where((i) => i.url == Instance.fromUrl(url).url);
     if (existing.isNotEmpty) {
       await ref.read(authProvider.notifier).switchInstance(existing.first.id);
     } else {
