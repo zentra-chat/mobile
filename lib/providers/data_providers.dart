@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/models/index.dart';
@@ -52,33 +53,37 @@ class ChannelMessagesNotifier extends Notifier<List<Message>> {
       final api = ref.read(apiClientProvider);
       final messages = await api.getMessages(channelId, limit: 50);
       state = messages.reversed.toList();
-    } catch (_) {
-      // Leave the list empty; the UI surfaces the load error separately.
+    } catch (e) {
+      debugPrint('Failed to load messages for channel $channelId: $e');
     }
   }
 
   void _handleEvent(WebSocketEvent event) {
-    switch (event.type) {
-      case WebSocketEventType.messageCreate:
-        final message = Message.fromJson(event.data as Map<String, dynamic>);
-        if (message.channelId != channelId) return;
-        if (state.any((m) => m.id == message.id)) return;
-        state = [...state, message];
-      case WebSocketEventType.messageUpdate:
-        final message = Message.fromJson(event.data as Map<String, dynamic>);
-        if (message.channelId != channelId) return;
-        state = [
-          for (final m in state)
-            if (m.id == message.id) message else m
-        ];
-      case WebSocketEventType.messageDelete:
-        final data = MessageDeleteEvent.fromJson(
-          event.data as Map<String, dynamic>,
-        );
-        if (data.channelId != channelId) return;
-        state = state.where((m) => m.id != data.messageId).toList();
-      default:
-        break;
+    try {
+      switch (event.type) {
+        case WebSocketEventType.messageCreate:
+          final message = Message.fromJson(event.data as Map<String, dynamic>);
+          if (message.channelId != channelId) return;
+          if (state.any((m) => m.id == message.id)) return;
+          state = [...state, message];
+        case WebSocketEventType.messageUpdate:
+          final message = Message.fromJson(event.data as Map<String, dynamic>);
+          if (message.channelId != channelId) return;
+          state = [
+            for (final m in state)
+              if (m.id == message.id) message else m
+          ];
+        case WebSocketEventType.messageDelete:
+          final data = MessageDeleteEvent.fromJson(
+            event.data as Map<String, dynamic>,
+          );
+          if (data.channelId != channelId) return;
+          state = state.where((m) => m.id != data.messageId).toList();
+        default:
+          break;
+      }
+    } catch (e) {
+      debugPrint('Failed to handle WebSocket event ${event.type}: $e');
     }
   }
 

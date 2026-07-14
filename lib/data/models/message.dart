@@ -136,12 +136,19 @@ class Message {
       linkPreviews: (json['linkPreviews'] as List? ?? [])
           .map((preview) => LinkPreview.fromJson(preview as Map<String, dynamic>))
           .toList(),
-      replyTo: json['replyTo'] == null
-          ? null
-          : Message.fromJson(json['replyTo'] as Map<String, dynamic>),
+      replyTo: _parseReplyTo(json['replyTo']),
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );
+  }
+
+  static Message? _parseReplyTo(dynamic data) {
+    if (data == null) return null;
+    try {
+      return Message.fromJson(data as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
   }
 }
 
