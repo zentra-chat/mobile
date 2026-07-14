@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dm_screen.dart';
 import 'home_screen.dart';
 import 'notifications_screen.dart';
-import 'profile_screen.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -19,7 +18,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     _NavTab(icon: Icons.forum, label: 'Servers'),
     _NavTab(icon: Icons.chat_bubble, label: 'DMs'),
     _NavTab(icon: Icons.notifications, label: 'Notifications'),
-    _NavTab(icon: Icons.person, label: 'Profile'),
     _NavTab(icon: Icons.settings, label: 'Settings'),
   ];
 
@@ -27,7 +25,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     HomeScreen(),
     DmScreen(),
     NotificationsScreen(),
-    ProfileScreen(),
     SettingsScreen(),
   ];
 

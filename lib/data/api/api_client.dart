@@ -405,6 +405,42 @@ class ApiClient {
     );
   }
 
+  // Notifications
+
+  Future<List<Notification>> getNotifications({
+    int? limit,
+    String? before,
+  }) async {
+    final query = <String, dynamic>{};
+    if (limit != null) query['limit'] = limit.toString();
+    if (before != null) query['before'] = before;
+
+    final data = await _get<dynamic>(
+      '/notifications',
+      query: query,
+      fromJsonT: (json) => json,
+    );
+    final wrapped = PaginatedResponse<Notification>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => Notification.fromJson(json as Map<String, dynamic>),
+    );
+    return wrapped.data;
+  }
+
+  Future<void> markNotificationRead(String id) async {
+    await _run(
+      () => _dio.post('/notifications/$id/read'),
+      (_) => null,
+    );
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    await _run(
+      () => _dio.post('/notifications/read'),
+      (_) => null,
+    );
+  }
+
   // Status
 
   // Probes a backend for reachability. Mirrors the web client, hitting the

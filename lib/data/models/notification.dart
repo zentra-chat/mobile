@@ -49,6 +49,38 @@ class Notification {
     this.actor,
   });
 
+  Notification copyWith({
+    String? id,
+    String? userId,
+    NotificationType? type,
+    String? title,
+    String? body,
+    String? communityId,
+    String? channelId,
+    String? messageId,
+    String? actorId,
+    Map<String, dynamic>? metadata,
+    bool? isRead,
+    String? createdAt,
+    User? actor,
+  }) {
+    return Notification(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      communityId: communityId ?? this.communityId,
+      channelId: channelId ?? this.channelId,
+      messageId: messageId ?? this.messageId,
+      actorId: actorId ?? this.actorId,
+      metadata: metadata ?? this.metadata,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
+      actor: actor ?? this.actor,
+    );
+  }
+
   factory Notification.fromJson(Map<String, dynamic> json) {
     return Notification(
       id: json['id'] as String,
