@@ -5,6 +5,7 @@ import '../config/app_config.dart';
 import '../data/api/api_client.dart';
 import '../providers/auth_provider.dart';
 import '../providers/instance_provider.dart';
+import '../widgets/animated_background.dart';
 import 'instances_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -54,13 +55,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final instance = ref.watch(instanceProvider);
     return Scaffold(
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      body: Stack(
+        children: [
+          const Positioned.fill(child: AnimatedBackground()),
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
@@ -118,6 +122,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
+      ),
+    ],
       ),
     );
   }
