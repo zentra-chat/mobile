@@ -33,14 +33,17 @@ class _MessageRowState extends State<MessageRow> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final time = TimeOfDay.fromDateTime(DateTime.parse(widget.message.createdAt));
+    final time = TimeOfDay.fromDateTime(
+      DateTime.parse(widget.message.createdAt),
+    );
     final author = widget.message.author;
     final grouped = _grouped;
 
     final avatar = CircleAvatar(
       radius: 18,
-      backgroundImage:
-          author.avatarUrl != null ? NetworkImage(author.avatarUrl!) : null,
+      backgroundImage: author.avatarUrl != null
+          ? NetworkImage(author.avatarUrl!)
+          : null,
       child: author.avatarUrl == null
           ? Text(
               author.effectiveName.isNotEmpty
@@ -60,18 +63,21 @@ class _MessageRowState extends State<MessageRow> {
           children: [
             SizedBox(
               width: 40,
-              child: grouped
-                  ? (_showTime
-                      ? Center(
-                          child: Text(
-                            time.format(context),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        )
-                      : null)
-                  : avatar,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: grouped
+                    ? (_showTime
+                          ? Center(
+                              child: Text(
+                                time.format(context),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            )
+                          : null)
+                    : avatar,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -79,22 +85,25 @@ class _MessageRowState extends State<MessageRow> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (!grouped) ...[
-                    Row(
-                      children: [
-                        Text(
-                          author.effectiveName,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Row(
+                        children: [
+                          Text(
+                            author.effectiveName,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          time.format(context),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                          const SizedBox(width: 8),
+                          Text(
+                            time.format(context),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 2),
                   ],
