@@ -1,5 +1,5 @@
 name: mobile
-description: "A new Flutter project."
+description: "Zentra mobile chat client."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -34,6 +34,18 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # HTTP client with interceptors used for auth + token refresh
+  dio: ^5.7.0
+
+  # Real-time communication over the Zentra websocket gateway
+  web_socket_channel: ^3.0.1
+
+  # Persists auth tokens securely on device
+  flutter_secure_storage: ^9.2.2
 
 dev_dependencies:
   flutter_test:
