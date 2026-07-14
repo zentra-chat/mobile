@@ -5,7 +5,7 @@ import '../config/app_config.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
 
 class App extends ConsumerStatefulWidget {
   const App({super.key});
@@ -35,7 +35,7 @@ class _AppState extends ConsumerState<App> {
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: zentraTheme,
-      home: isAuthed ? const HomeScreen() : const LoginScreen(),
+      home: isAuthed ? const MainScreen() : const LoginScreen(),
     );
   }
 }

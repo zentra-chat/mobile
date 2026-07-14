@@ -32,9 +32,6 @@ class ApiException implements Exception {
   String toString() => '$code: $message';
 }
 
-// Core REST client for the Zentra backend. Mirrors the web client's surface
-// area so feature work can be ported straightforwardly.
-//
 // Auth and token refresh are delegated to callbacks supplied by the app so this
 // class stays free of Riverpod and storage concerns.
 class ApiClient {
