@@ -84,11 +84,11 @@ class FullUser extends User {
       status: UserStatusX.fromString(json['status'] as String?),
       customStatus: json['customStatus'] as String?,
       createdAt: json['createdAt'] as String,
-      email: json['email'] as String,
-      emailVerified: json['emailVerified'] as bool,
-      twoFactorEnabled: json['twoFactorEnabled'] as bool,
-      isAdmin: json['isAdmin'] as bool,
-      updatedAt: json['updatedAt'] as String,
+      email: json['email'] as String? ?? '',
+      emailVerified: json['emailVerified'] as bool? ?? false,
+      twoFactorEnabled: json['twoFactorEnabled'] as bool? ?? false,
+      isAdmin: json['isAdmin'] as bool? ?? false,
+      updatedAt: json['updatedAt'] as String? ?? '',
     );
   }
 }

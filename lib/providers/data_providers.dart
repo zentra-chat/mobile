@@ -91,7 +91,7 @@ class ChannelMessagesNotifier extends StateNotifier<List<Message>> {
   }
 }
 
-final channelMessagesProvider =
-    StateNotifierProvider.family<ChannelMessagesNotifier, List<Message>, String>(
+final channelMessagesProvider = StateNotifierProvider.family
+    .autoDispose<ChannelMessagesNotifier, List<Message>, String>(
   (ref, channelId) => ChannelMessagesNotifier(ref, channelId),
 );

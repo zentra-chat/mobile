@@ -18,9 +18,9 @@ class AuthResponse {
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
       user: FullUser.fromJson(json['user'] as Map<String, dynamic>),
-      accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
-      expiresAt: json['expiresAt'] as String,
+      accessToken: json['accessToken'] as String? ?? '',
+      refreshToken: json['refreshToken'] as String? ?? '',
+      expiresAt: json['expiresAt'] as String? ?? '',
       requires2FA: json['requires2FA'] as bool?,
     );
   }
@@ -141,9 +141,9 @@ class Session {
   factory Session.fromJson(Map<String, dynamic> json) {
     return Session(
       user: FullUser.fromJson(json['user'] as Map<String, dynamic>),
-      accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
-      expiresAt: json['expiresAt'] as String,
+      accessToken: json['accessToken'] as String? ?? '',
+      refreshToken: json['refreshToken'] as String? ?? '',
+      expiresAt: json['expiresAt'] as String? ?? '',
     );
   }
 }

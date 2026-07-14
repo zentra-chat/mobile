@@ -30,7 +30,7 @@ class ZentraColors {
   static const onBright = Color(0xFF04140F);
 }
 
-// Dark theme built to match the Zentra web client
+// Dark theme built to match the web client
 final ThemeData zentraTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
