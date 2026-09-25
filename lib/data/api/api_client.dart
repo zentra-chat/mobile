@@ -254,6 +254,37 @@ class ApiClient {
     return wrapped.data;
   }
 
+  Future<Channel> createChannel(
+    String communityId, {
+    required String name,
+    String type = 'text',
+    String? topic,
+    String? categoryId,
+    bool isNsfw = false,
+    int slowmodeSeconds = 0,
+    Map<String, dynamic> metadata = const {},
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'type': type,
+      'topic': topic,
+      'categoryId': categoryId,
+      'isNsfw': isNsfw,
+      'slowmodeSeconds': slowmodeSeconds,
+      'metadata': metadata,
+    };
+    final data = await _post<dynamic>(
+      '/channels/communities/$communityId/channels',
+      body: body,
+      fromJsonT: (json) => json,
+    );
+    final wrapped = ApiResponse<Channel>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => Channel.fromJson(json as Map<String, dynamic>),
+    );
+    return wrapped.data;
+  }
+
   // Messages
 
   Future<List<Message>> getMessages(
@@ -312,6 +343,77 @@ class ApiClient {
 
   Future<void> markChannelRead(String channelId) async {
     await _run(() => _dio.post('/channels/$channelId/read'), (_) => null);
+  }
+
+  Future<Channel> updateChannel(
+    String channelId, {
+    String? name,
+    String? categoryId,
+  }) async {
+    final body = <String, dynamic>{
+      'name': ?name,
+      'categoryId': ?categoryId,
+    };
+    final data = await _run(
+      () => _dio.patch('/channels/$channelId', data: body),
+      (json) => json,
+    );
+    final wrapped = ApiResponse<Channel>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => Channel.fromJson(json as Map<String, dynamic>),
+    );
+    return wrapped.data;
+  }
+
+  // Categories (channel folders)
+
+  Future<List<ChannelCategory>> getCategories(String communityId) async {
+    final data = await _get<dynamic>(
+      '/channels/communities/$communityId/categories',
+      fromJsonT: (json) => json,
+    );
+    final wrapped = ApiResponse<List<ChannelCategory>>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => (json as List)
+          .map((item) => ChannelCategory.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+    return wrapped.data;
+  }
+
+  Future<ChannelCategory> createCategory(
+    String communityId,
+    String name,
+  ) async {
+    final data = await _post<dynamic>(
+      '/channels/communities/$communityId/categories',
+      body: {'name': name},
+      fromJsonT: (json) => json,
+    );
+    final wrapped = ApiResponse<ChannelCategory>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => ChannelCategory.fromJson(json as Map<String, dynamic>),
+    );
+    return wrapped.data;
+  }
+
+  Future<ChannelCategory> updateCategory(
+    String categoryId,
+    String name,
+  ) async {
+    final data = await _run(
+      () => _dio.patch('/channels/categories/$categoryId', data: {'name': name}),
+      (json) => json,
+    );
+    final wrapped = ApiResponse<ChannelCategory>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => ChannelCategory.fromJson(json as Map<String, dynamic>),
+    );
+    return wrapped.data;
+  }
+
+  Future<void> deleteCategory(String categoryId) async {
+    await _run(() => _dio.delete('/channels/categories/$categoryId'), (_) => null);
   }
 
   Future<UnreadCounts> getChannelUnreadCounts(String communityId) async {

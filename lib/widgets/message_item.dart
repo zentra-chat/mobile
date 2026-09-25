@@ -55,7 +55,9 @@ class _MessageRowState extends State<MessageRow> {
     );
 
     return InkWell(
-      onTap: grouped ? () => setState(() => _showTime = !_showTime) : null,
+      onTap: () {
+        if (grouped) setState(() => _showTime = !_showTime);
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         child: Row(

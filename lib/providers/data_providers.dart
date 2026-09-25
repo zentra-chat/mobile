@@ -24,8 +24,16 @@ final selectedChannelIdProvider =
 
 final channelsProvider =
     FutureProvider.family<List<Channel>, String>((ref, communityId) async {
-  final api = ref.watch(apiClientProvider);
+  final api = ref.read(apiClientProvider);
   return api.getChannels(communityId);
+});
+
+// Categories are the folder headers that channels are grouped under in the
+// channel list. Fetched alongside channels whenever the list is shown.
+final categoriesProvider =
+    FutureProvider.family<List<ChannelCategory>, String>((ref, communityId) async {
+  final api = ref.read(apiClientProvider);
+  return api.getCategories(communityId);
 });
 
 // Holds the live message list for a single channel. Seeds from REST history
