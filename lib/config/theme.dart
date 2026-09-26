@@ -97,4 +97,45 @@ final ThemeData zentraTheme = ThemeData(
       foregroundColor: WidgetStatePropertyAll(ZentraColors.textSecondary),
     ),
   ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: ZentraColors.backgroundSecondary,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    centerTitle: false,
+    iconTheme: IconThemeData(color: ZentraColors.textSecondary),
+    actionsIconTheme: IconThemeData(color: ZentraColors.textSecondary),
+    titleTextStyle: TextStyle(
+      color: ZentraColors.textPrimary,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    ),
+    shape: Border(bottom: BorderSide(color: ZentraColors.border)),
+  ),
+  listTileTheme: const ListTileThemeData(
+    iconColor: ZentraColors.textSecondary,
+    textColor: ZentraColors.textPrimary,
+  ),
+  dividerTheme: const DividerThemeData(
+    color: ZentraColors.border,
+    thickness: 1,
+    space: 1,
+  ),
+  dialogTheme: DialogThemeData(
+    backgroundColor: ZentraColors.surface,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  ),
+  bottomSheetTheme: const BottomSheetThemeData(
+    backgroundColor: ZentraColors.backgroundSecondary,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+  ),
+  snackBarTheme: const SnackBarThemeData(
+    backgroundColor: ZentraColors.surfaceHover,
+    contentTextStyle: TextStyle(color: ZentraColors.textPrimary),
+    behavior: SnackBarBehavior.floating,
+  ),
 );

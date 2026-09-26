@@ -64,6 +64,12 @@ class UnreadCounts {
   }
 }
 
+extension UnreadCountsX on UnreadCounts {
+  int get totalUnread => unread.values.fold(0, (a, b) => a + b);
+  int unreadFor(String channelId) => unread[channelId] ?? 0;
+  int mentionsFor(String channelId) => mentions[channelId] ?? 0;
+}
+
 class ChannelCategory {
   final String id;
   final String communityId;

@@ -1,3 +1,5 @@
+List<dynamic> asList(dynamic json) => json is List ? json : const <dynamic>[];
+
 class ApiResponse<T> {
   final T data;
 
@@ -31,7 +33,7 @@ class PaginatedResponse<T> {
     T Function(dynamic) fromJsonT,
   ) {
     return PaginatedResponse(
-      data: (json['data'] as List).map(fromJsonT).toList(),
+      data: asList(json['data']).map(fromJsonT).toList(),
       total: json['total'] as int,
       page: json['page'] as int,
       pageSize: json['pageSize'] as int,
@@ -45,11 +47,7 @@ class ApiError {
   final String code;
   final Map<String, dynamic>? details;
 
-  const ApiError({
-    required this.error,
-    required this.code,
-    this.details,
-  });
+  const ApiError({required this.error, required this.code, this.details});
 
   factory ApiError.fromJson(Map<String, dynamic> json) {
     return ApiError(

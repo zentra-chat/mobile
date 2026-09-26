@@ -36,6 +36,15 @@ final categoriesProvider =
   return api.getCategories(communityId);
 });
 
+// Per channel unread and mention counts for a community. Drives the unread
+// dots in the channel sidebar and the badges on the server rail. Invalidated
+// whenever a channel is opened.
+final channelUnreadProvider =
+    FutureProvider.family<UnreadCounts, String>((ref, communityId) async {
+  final api = ref.read(apiClientProvider);
+  return api.getChannelUnreadCounts(communityId);
+});
+
 // Holds the live message list for a single channel. Seeds from REST history
 // then applies gateway events (create / update / delete) as they arrive.
 class ChannelMessagesNotifier extends Notifier<List<Message>> {

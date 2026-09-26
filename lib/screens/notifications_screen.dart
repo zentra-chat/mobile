@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/models/notification.dart' as models;
 import '../providers/notifications_provider.dart';
+import '../widgets/avatar.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -68,16 +69,14 @@ class _NotificationTile extends StatelessWidget {
     final color = isUnread ? theme.colorScheme.primary : null;
 
     return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: notification.actor?.avatarUrl != null
-            ? NetworkImage(notification.actor!.avatarUrl!)
-            : null,
+      leading: RemoteAvatar(
+        url: notification.actor?.avatarUrl,
+        label: notification.actor?.effectiveName ?? '',
+        radius: 20,
         backgroundColor: isUnread
             ? theme.colorScheme.primaryContainer
             : theme.colorScheme.surfaceContainerHighest,
-        child: notification.actor?.avatarUrl == null
-            ? Icon(Icons.person, size: 20)
-            : null,
+        child: const Icon(Icons.person, size: 20),
       ),
       title: Text(
         notification.title,

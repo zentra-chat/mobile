@@ -5,6 +5,7 @@ import '../config/app_config.dart';
 import '../providers/auth_provider.dart';
 import '../providers/api_provider.dart';
 import '../providers/instance_provider.dart';
+import '../widgets/avatar.dart';
 
 // Manage and switch between backend instances, mirroring the web client's
 // instance modal. Instances are persisted; selecting one swaps the active
@@ -140,18 +141,7 @@ class _InstancesScreenState extends ConsumerState<InstancesScreen> {
           ...instances.map((instance) {
             final isActive = instance.id == activeId;
             return ListTile(
-              leading: CircleAvatar(
-                backgroundImage: instance.iconUrl != null
-                    ? NetworkImage(instance.iconUrl!)
-                    : null,
-                child: instance.iconUrl == null
-                    ? Text(
-                        instance.name.isNotEmpty
-                            ? instance.name[0].toUpperCase()
-                            : '?',
-                      )
-                    : null,
-              ),
+              leading: RemoteAvatar(url: instance.iconUrl, label: instance.name),
               title: Text(instance.name),
               subtitle: Text(instance.url),
               trailing: Row(

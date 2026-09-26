@@ -231,7 +231,7 @@ class ApiClient {
     final data = await _get<dynamic>('/communities', fromJsonT: (json) => json);
     final wrapped = ApiResponse<List<Community>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => (json as List)
+      (json) => asList(json)
           .map((item) => Community.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -247,7 +247,7 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<Channel>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => (json as List)
+      (json) => asList(json)
           .map((item) => Channel.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -305,7 +305,7 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<Message>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => (json as List)
+      (json) => asList(json)
           .map((item) => Message.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -374,7 +374,7 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<ChannelCategory>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => (json as List)
+      (json) => asList(json)
           .map((item) => ChannelCategory.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -434,7 +434,7 @@ class ApiClient {
     final data = await _get<dynamic>('/dms/conversations', fromJsonT: (json) => json);
     final wrapped = ApiResponse<List<RawDmConversation>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => (json as List)
+      (json) => asList(json)
           .map((item) => RawDmConversation.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -472,7 +472,7 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<RawDmMessage>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => (json as List)
+      (json) => asList(json)
           .map((item) => RawDmMessage.fromJson(item as Map<String, dynamic>))
           .toList(),
     );

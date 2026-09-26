@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/models/index.dart';
+import 'avatar.dart';
 
 class MessageRow extends StatefulWidget {
   const MessageRow({
@@ -39,19 +40,10 @@ class _MessageRowState extends State<MessageRow> {
     final author = widget.message.author;
     final grouped = _grouped;
 
-    final avatar = CircleAvatar(
+    final avatar = RemoteAvatar(
+      url: author.avatarUrl,
+      label: author.effectiveName,
       radius: 18,
-      backgroundImage: author.avatarUrl != null
-          ? NetworkImage(author.avatarUrl!)
-          : null,
-      child: author.avatarUrl == null
-          ? Text(
-              author.effectiveName.isNotEmpty
-                  ? author.effectiveName[0].toUpperCase()
-                  : '?',
-              style: theme.textTheme.labelSmall,
-            )
-          : null,
     );
 
     return InkWell(
