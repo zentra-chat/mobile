@@ -2,6 +2,8 @@ import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/models/notification.dart' as models;
+import '../providers/data_providers.dart';
+import '../providers/nav_provider.dart';
 import '../providers/notifications_provider.dart';
 import '../widgets/avatar.dart';
 
@@ -19,7 +21,8 @@ class NotificationsScreen extends ConsumerWidget {
         actions: [
           if (unreadCount > 0)
             TextButton.icon(
-              onPressed: () => ref.read(notificationsProvider.notifier).markAllRead(),
+              onPressed: () =>
+                  ref.read(notificationsProvider.notifier).markAllRead(),
               icon: const Icon(Icons.done_all, size: 18),
               label: const Text('Mark all read'),
             ),
@@ -28,7 +31,7 @@ class NotificationsScreen extends ConsumerWidget {
       body: notifications.isEmpty
           ? const Center(child: Text('No notifications'))
           : RefreshIndicator(
-              onRefresh: () => ref.read(notificationsProvider.notifier).refresh(),
+              onRefresh: ref.read(notificationsProvider.notifier).refresh,
               child: ListView.separated(
                 itemCount: notifications.length,
                 separatorBuilder: (_, _) => const Divider(height: 1),
@@ -37,18 +40,47 @@ class NotificationsScreen extends ConsumerWidget {
                   return _NotificationTile(
                     notification: notification,
                     isUnread: !notification.isRead,
-                    onTap: () {
-                      if (!notification.isRead) {
-                        ref
-                            .read(notificationsProvider.notifier)
-                            .markRead(notification.id);
-                      }
-                    },
+                    onTap: () => _open(context, ref, notification),
                   );
                 },
               ),
             ),
     );
+  }
+
+  Future<void> _open(
+    BuildContext context,
+    WidgetRef ref,
+    models.Notification notification,
+  ) async {
+    if (!notification.isRead) {
+      await ref.read(notificationsProvider.notifier).markRead(notification.id);
+    }
+    if (!context.mounted) return;
+
+    final nav = ref.read(navProvider.notifier);
+    final conversationId = notification.conversationId;
+    if (conversationId != null && conversationId.isNotEmpty) {
+      await nav.selectConversation(conversationId);
+      return;
+    }
+
+    final channelId = notification.channelId;
+    final communityId = notification.communityId;
+    if (channelId == null || channelId.isEmpty) return;
+    if (communityId == null || communityId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('That community is no longer available')),
+      );
+      return;
+    }
+
+    ref.read(selectedCommunityIdProvider.notifier).set(communityId);
+    final messageId = notification.messageId;
+    ref.read(pendingMessageIdProvider.notifier).set(
+      messageId == null || messageId.isEmpty ? null : messageId,
+    );
+    await nav.selectChannel(communityId, channelId);
   }
 }
 
@@ -67,11 +99,12 @@ class _NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = isUnread ? theme.colorScheme.primary : null;
+    final actor = notification.actor;
 
     return ListTile(
       leading: RemoteAvatar(
-        url: notification.actor?.avatarUrl,
-        label: notification.actor?.effectiveName ?? '',
+        url: actor?.avatarUrl,
+        label: actor?.effectiveName ?? '',
         radius: 20,
         backgroundColor: isUnread
             ? theme.colorScheme.primaryContainer
@@ -98,7 +131,9 @@ class _NotificationTile extends StatelessWidget {
         style: theme.textTheme.labelSmall?.copyWith(color: color),
       ),
       selected: isUnread,
-      selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+      selectedTileColor: theme.colorScheme.primaryContainer.withValues(
+        alpha: 0.3,
+      ),
       onTap: onTap,
     );
   }
