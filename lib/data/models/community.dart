@@ -37,28 +37,28 @@ class Community {
       ownerId: json['ownerId'] as String,
       isPublic: json['isPublic'] as bool,
       isOpen: json['isOpen'] as bool,
-      memberCount: json['memberCount'] as int? ?? 0,
+      memberCount: json['memberCount'] as int,
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );
   }
 }
 
+/// Members come back without their roles attached, so role colours are
+/// resolved from the community's role list instead.
 class CommunityMember {
   final String userId;
   final String communityId;
   final String? nickname;
   final String joinedAt;
-  final List<Role> roles;
-  final User? user;
+  final User user;
 
   const CommunityMember({
     required this.userId,
     required this.communityId,
     this.nickname,
     required this.joinedAt,
-    this.roles = const [],
-    this.user,
+    required this.user,
   });
 
   factory CommunityMember.fromJson(Map<String, dynamic> json) {
@@ -67,12 +67,7 @@ class CommunityMember {
       communityId: json['communityId'] as String,
       nickname: json['nickname'] as String?,
       joinedAt: json['joinedAt'] as String,
-      roles: (json['roles'] as List? ?? [])
-          .map((role) => Role.fromJson(role as Map<String, dynamic>))
-          .toList(),
-      user: json['user'] == null
-          ? null
-          : User.fromJson(json['user'] as Map<String, dynamic>),
+      user: User.fromJson(json['user'] as Map<String, dynamic>),
     );
   }
 }
@@ -83,7 +78,6 @@ class Role {
   final String name;
   final String? color;
   final int position;
-  final int permissions;
   final bool isDefault;
   final String createdAt;
 
@@ -93,7 +87,6 @@ class Role {
     required this.name,
     this.color,
     required this.position,
-    required this.permissions,
     required this.isDefault,
     required this.createdAt,
   });
@@ -104,9 +97,8 @@ class Role {
       communityId: json['communityId'] as String,
       name: json['name'] as String,
       color: json['color'] as String?,
-      position: json['position'] as int? ?? 0,
-      permissions: json['permissions'] as int? ?? 0,
-      isDefault: json['isDefault'] as bool? ?? false,
+      position: json['position'] as int,
+      isDefault: json['isDefault'] as bool,
       createdAt: json['createdAt'] as String,
     );
   }

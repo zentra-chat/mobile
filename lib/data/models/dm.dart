@@ -1,23 +1,22 @@
 import 'message.dart';
 import 'user.dart';
 
-// Direct message payloads arrive from the backend in a slightly different shape
-// than channel messages. These raw types are mapped into the shared Message
-// model so the rest of the app can treat DMs and channel messages uniformly.
+// Direct message payloads use different field names than channel messages, so
+// they are mapped onto the shared Message model once here.
 
 class RawDmMessage {
   final String id;
   final String conversationId;
   final String senderId;
   final String content;
-  final RawDmMessageReply? replyTo;
+  final MessageReply? replyTo;
   final bool isEdited;
   final List<Reaction> reactions;
+  final List<Attachment> attachments;
   final List<LinkPreview> linkPreviews;
   final String createdAt;
   final String updatedAt;
-  final User? sender;
-  final List<Attachment> attachments;
+  final User sender;
 
   const RawDmMessage({
     required this.id,
@@ -27,11 +26,11 @@ class RawDmMessage {
     this.replyTo,
     required this.isEdited,
     required this.reactions,
+    required this.attachments,
     required this.linkPreviews,
     required this.createdAt,
     required this.updatedAt,
-    this.sender,
-    required this.attachments,
+    required this.sender,
   });
 
   factory RawDmMessage.fromJson(Map<String, dynamic> json) {
@@ -42,47 +41,23 @@ class RawDmMessage {
       content: json['content'] as String,
       replyTo: json['replyTo'] == null
           ? null
-          : RawDmMessageReply.fromJson(json['replyTo'] as Map<String, dynamic>),
-      isEdited: json['isEdited'] as bool? ?? false,
-      reactions: (json['reactions'] as List? ?? [])
-          .map((reaction) => Reaction.fromJson(reaction as Map<String, dynamic>))
-          .toList(),
-      linkPreviews: (json['linkPreviews'] as List? ?? [])
-          .map((preview) => LinkPreview.fromJson(preview as Map<String, dynamic>))
-          .toList(),
+          : MessageReply.fromDmJson(json['replyTo'] as Map<String, dynamic>),
+      isEdited: json['isEdited'] as bool,
+      reactions: [
+        for (final reaction in json['reactions'] as List<dynamic>? ?? const [])
+          Reaction.fromJson(reaction as Map<String, dynamic>),
+      ],
+      attachments: [
+        for (final item in json['attachments'] as List<dynamic>? ?? const [])
+          Attachment.fromJson(item as Map<String, dynamic>),
+      ],
+      linkPreviews: [
+        for (final item in json['linkPreviews'] as List<dynamic>? ?? const [])
+          LinkPreview.fromJson(item as Map<String, dynamic>),
+      ],
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
-      sender: json['sender'] == null
-          ? null
-          : User.fromJson(json['sender'] as Map<String, dynamic>),
-      attachments: (json['attachments'] as List? ?? [])
-          .map((attachment) => Attachment.fromJson(attachment as Map<String, dynamic>))
-          .toList(),
-    );
-  }
-}
-
-class RawDmMessageReply {
-  final String id;
-  final String content;
-  final String senderId;
-  final User? sender;
-
-  const RawDmMessageReply({
-    required this.id,
-    required this.content,
-    required this.senderId,
-    this.sender,
-  });
-
-  factory RawDmMessageReply.fromJson(Map<String, dynamic> json) {
-    return RawDmMessageReply(
-      id: json['id'] as String,
-      content: json['content'] as String,
-      senderId: json['senderId'] as String,
-      sender: json['sender'] == null
-          ? null
-          : User.fromJson(json['sender'] as Map<String, dynamic>),
+      sender: User.fromJson(json['sender'] as Map<String, dynamic>),
     );
   }
 }
@@ -107,13 +82,14 @@ class RawDmConversation {
   factory RawDmConversation.fromJson(Map<String, dynamic> json) {
     return RawDmConversation(
       id: json['id'] as String,
-      participants: (json['participants'] as List? ?? [])
-          .map((user) => User.fromJson(user as Map<String, dynamic>))
-          .toList(),
+      participants: [
+        for (final user in json['participants'] as List<dynamic>)
+          User.fromJson(user as Map<String, dynamic>),
+      ],
       lastMessage: json['lastMessage'] == null
           ? null
           : RawDmMessage.fromJson(json['lastMessage'] as Map<String, dynamic>),
-      unreadCount: json['unreadCount'] as int? ?? 0,
+      unreadCount: json['unreadCount'] as int,
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );
@@ -136,6 +112,33 @@ class DMConversation {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  DMConversation copyWith({
+    Message? lastMessage,
+    int? unreadCount,
+  }) {
+    return DMConversation(
+      id: id,
+      participants: participants,
+      lastMessage: lastMessage ?? this.lastMessage,
+      unreadCount: unreadCount ?? this.unreadCount,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  /// Everyone but the reader. Conversations are between two users, but the
+  /// payload lists every participant including the reader. Null means the
+  /// reader is unknown, so nobody is excluded.
+  List<User> others(String? currentUserId) => [
+    for (final user in participants)
+      if (user.id != currentUserId) user,
+  ];
+
+  String title(String? currentUserId) {
+    final names = others(currentUserId).map((user) => user.effectiveName);
+    return names.isEmpty ? 'Direct Message' : names.join(', ');
+  }
 }
 
 Message mapDmMessage(RawDmMessage message) {
@@ -144,30 +147,13 @@ Message mapDmMessage(RawDmMessage message) {
     channelId: message.conversationId,
     authorId: message.senderId,
     content: message.content,
-    replyToId: null,
     isEdited: message.isEdited,
     isPinned: false,
     reactions: message.reactions,
-    author: message.sender ?? User(id: message.senderId, username: 'Unknown', createdAt: message.createdAt),
+    author: message.sender,
     attachments: message.attachments,
     linkPreviews: message.linkPreviews,
-    replyTo: message.replyTo == null
-        ? null
-        : Message(
-            id: message.replyTo!.id,
-            channelId: message.conversationId,
-            authorId: message.replyTo!.senderId,
-            content: message.replyTo!.content,
-            author: message.replyTo!.sender ??
-                User(id: message.replyTo!.senderId, username: 'Unknown', createdAt: message.createdAt),
-            isEdited: false,
-            isPinned: false,
-            reactions: const [],
-            attachments: const [],
-            linkPreviews: const [],
-            createdAt: message.createdAt,
-            updatedAt: message.updatedAt,
-          ),
+    replyTo: message.replyTo,
     createdAt: message.createdAt,
     updatedAt: message.updatedAt,
   );

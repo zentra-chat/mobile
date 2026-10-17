@@ -1,11 +1,8 @@
 enum UserStatus { online, away, busy, invisible, offline }
 
 extension UserStatusX on UserStatus {
-  static UserStatus fromString(String? value) {
-    return UserStatus.values.firstWhere(
-      (status) => status.name == value,
-      orElse: () => UserStatus.offline,
-    );
+  static UserStatus fromString(String value) {
+    return UserStatus.values.byName(value);
   }
 }
 
@@ -40,13 +37,14 @@ class User {
       avatarUrl: json['avatarUrl'] as String?,
       bannerUrl: json['bannerUrl'] as String?,
       bio: json['bio'] as String?,
-      status: UserStatusX.fromString(json['status'] as String?),
+      status: UserStatusX.fromString(json['status'] as String),
       customStatus: json['customStatus'] as String?,
       createdAt: json['createdAt'] as String,
     );
   }
 
-  String get effectiveName => displayName?.isNotEmpty == true ? displayName! : username;
+  String get effectiveName =>
+      displayName?.isNotEmpty == true ? displayName! : username;
 }
 
 class FullUser extends User {
@@ -81,14 +79,14 @@ class FullUser extends User {
       avatarUrl: json['avatarUrl'] as String?,
       bannerUrl: json['bannerUrl'] as String?,
       bio: json['bio'] as String?,
-      status: UserStatusX.fromString(json['status'] as String?),
+      status: UserStatusX.fromString(json['status'] as String),
       customStatus: json['customStatus'] as String?,
       createdAt: json['createdAt'] as String,
-      email: json['email'] as String? ?? '',
-      emailVerified: json['emailVerified'] as bool? ?? false,
-      twoFactorEnabled: json['twoFactorEnabled'] as bool? ?? false,
-      isAdmin: json['isAdmin'] as bool? ?? false,
-      updatedAt: json['updatedAt'] as String? ?? '',
+      email: json['email'] as String,
+      emailVerified: json['emailVerified'] as bool,
+      twoFactorEnabled: json['twoFactorEnabled'] as bool,
+      isAdmin: json['isAdmin'] as bool,
+      updatedAt: json['updatedAt'] as String,
     );
   }
 }

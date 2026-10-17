@@ -33,7 +33,9 @@ class PaginatedResponse<T> {
     T Function(dynamic) fromJsonT,
   ) {
     return PaginatedResponse(
-      data: asList(json['data']).map(fromJsonT).toList(),
+      data: (json['data'] as List<dynamic>)
+          .map((item) => fromJsonT(item as Map<String, dynamic>))
+          .toList(),
       total: json['total'] as int,
       page: json['page'] as int,
       pageSize: json['pageSize'] as int,
@@ -51,8 +53,8 @@ class ApiError {
 
   factory ApiError.fromJson(Map<String, dynamic> json) {
     return ApiError(
-      error: json['error'] as String? ?? 'Unknown error',
-      code: json['code'] as String? ?? 'UNKNOWN',
+      error: json['error'] as String,
+      code: json['code'] as String,
       details: json['details'] as Map<String, dynamic>?,
     );
   }

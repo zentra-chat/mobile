@@ -47,6 +47,15 @@ dependencies:
   # Persists auth tokens securely on device
   flutter_secure_storage: ^10.3.1
 
+  # Message content rendering: markdown, syntax highlighting, link handling
+  flutter_markdown: ^0.7.7+1
+  markdown: ^7.3.1
+  highlight: ^0.7.0
+  url_launcher: ^6.3.3
+
+  # System notifications for mentions, replies and direct messages
+  flutter_local_notifications: ^22.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

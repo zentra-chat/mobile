@@ -231,8 +231,40 @@ class ApiClient {
     final data = await _get<dynamic>('/communities', fromJsonT: (json) => json);
     final wrapped = ApiResponse<List<Community>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => asList(json)
+      (json) => (json as List<dynamic>)
           .map((item) => Community.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+    return wrapped.data;
+  }
+
+  // Members and roles feed mention rendering and author name colours.
+
+  Future<List<CommunityMember>> getCommunityMembers(
+    String communityId, {
+    int limit = 100,
+  }) async {
+    final data = await _get<dynamic>(
+      '/communities/$communityId/members',
+      query: {'page': '1', 'pageSize': limit.toString()},
+      fromJsonT: (json) => json,
+    );
+    final paginated = PaginatedResponse<CommunityMember>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => CommunityMember.fromJson(json as Map<String, dynamic>),
+    );
+    return paginated.data;
+  }
+
+  Future<List<Role>> getRoles(String communityId) async {
+    final data = await _get<dynamic>(
+      '/communities/$communityId/roles',
+      fromJsonT: (json) => json,
+    );
+    final wrapped = ApiResponse<List<Role>>.fromJson(
+      data as Map<String, dynamic>,
+      (json) => (json as List<dynamic>)
+          .map((item) => Role.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
     return wrapped.data;
@@ -247,7 +279,7 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<Channel>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => asList(json)
+      (json) => (json as List<dynamic>)
           .map((item) => Channel.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -305,10 +337,9 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<Message>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => asList(json)
+(json) => (json as List<dynamic>)
           .map((item) => Message.fromJson(item as Map<String, dynamic>))
-          .toList(),
-    );
+          .toList(),    );
     return wrapped.data;
   }
 
@@ -339,6 +370,49 @@ class ApiClient {
 
   Future<void> deleteMessage(String messageId) async {
     await _run(() => _dio.delete('/messages/$messageId'), (_) => null);
+  }
+
+  Future<void> setPinned(String messageId, bool pinned) async {
+    await _run(
+      () => pinned
+          ? _dio.post('/messages/$messageId/pin')
+          : _dio.delete('/messages/$messageId/pin'),
+      (_) => null,
+    );
+  }
+
+  // Reactions
+
+  Future<void> addReaction(String messageId, String emoji) async {
+    await _run(
+      () => _dio.post('/messages/$messageId/reactions', data: {'emoji': emoji}),
+      (_) => null,
+    );
+  }
+
+  Future<void> removeReaction(String messageId, String emoji) async {
+    await _run(
+      () => _dio.delete(
+        '/messages/$messageId/reactions/${Uri.encodeComponent(emoji)}',
+      ),
+      (_) => null,
+    );
+  }
+
+  Future<void> addDmReaction(String messageId, String emoji) async {
+    await _run(
+      () => _dio.post('/dms/messages/$messageId/reactions', data: {'emoji': emoji}),
+      (_) => null,
+    );
+  }
+
+  Future<void> removeDmReaction(String messageId, String emoji) async {
+    await _run(
+      () => _dio.delete(
+        '/dms/messages/$messageId/reactions/${Uri.encodeComponent(emoji)}',
+      ),
+      (_) => null,
+    );
   }
 
   Future<void> markChannelRead(String channelId) async {
@@ -374,7 +448,7 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<ChannelCategory>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => asList(json)
+      (json) => (json as List<dynamic>)
           .map((item) => ChannelCategory.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -434,7 +508,7 @@ class ApiClient {
     final data = await _get<dynamic>('/dms/conversations', fromJsonT: (json) => json);
     final wrapped = ApiResponse<List<RawDmConversation>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => asList(json)
+      (json) => (json as List<dynamic>)
           .map((item) => RawDmConversation.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -472,7 +546,7 @@ class ApiClient {
     );
     final wrapped = ApiResponse<List<RawDmMessage>>.fromJson(
       data as Map<String, dynamic>,
-      (json) => asList(json)
+      (json) => (json as List<dynamic>)
           .map((item) => RawDmMessage.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
@@ -507,26 +581,33 @@ class ApiClient {
     );
   }
 
+  Future<void> editDmMessage(String messageId, String content) async {
+    await _run(
+      () => _dio.patch('/dms/messages/$messageId', data: {'content': content}),
+      (_) => null,
+    );
+  }
+
+  Future<void> deleteDmMessage(String messageId) async {
+    await _run(() => _dio.delete('/dms/messages/$messageId'), (_) => null);
+  }
+
   // Notifications
 
   Future<List<Notification>> getNotifications({
-    int? limit,
-    String? before,
+    int page = 1,
+    int limit = 50,
   }) async {
-    final query = <String, dynamic>{};
-    if (limit != null) query['limit'] = limit.toString();
-    if (before != null) query['before'] = before;
-
     final data = await _get<dynamic>(
       '/notifications',
-      query: query,
+      query: {'page': '$page', 'limit': '$limit'},
       fromJsonT: (json) => json,
     );
-    final wrapped = PaginatedResponse<Notification>.fromJson(
+    final paginated = PaginatedResponse<Notification>.fromJson(
       data as Map<String, dynamic>,
       (json) => Notification.fromJson(json as Map<String, dynamic>),
     );
-    return wrapped.data;
+    return paginated.data;
   }
 
   Future<void> markNotificationRead(String id) async {
@@ -538,9 +619,13 @@ class ApiClient {
 
   Future<void> markAllNotificationsRead() async {
     await _run(
-      () => _dio.post('/notifications/read'),
+      () => _dio.post('/notifications/read-all'),
       (_) => null,
     );
+  }
+
+  Future<void> deleteNotification(String id) async {
+    await _run(() => _dio.delete('/notifications/$id'), (_) => null);
   }
 
   // Status

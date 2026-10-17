@@ -22,6 +22,7 @@ enum WebSocketEventType {
   userUpdate,
   memberJoin,
   memberLeave,
+  memberUpdate,
   reactionAdd,
   reactionRemove,
   notification,
@@ -35,25 +36,20 @@ enum WebSocketEventType {
 }
 
 extension WebSocketEventTypeX on WebSocketEventType {
-  static WebSocketEventType fromString(String value) {
-    final normalized = value.toLowerCase();
-    return WebSocketEventType.values.firstWhere(
-      (type) => type.name.toLowerCase() == normalized,
-      orElse: () => WebSocketEventType.ready,
-    );
-  }
+  static WebSocketEventType fromString(String value) =>
+      WebSocketEventType.values.byName(value.toLowerCase());
 }
 
 class WebSocketEvent {
   final WebSocketEventType type;
-  final dynamic data;
+  final Map<String, dynamic> data;
 
   const WebSocketEvent({required this.type, required this.data});
 
   factory WebSocketEvent.fromJson(Map<String, dynamic> json) {
     return WebSocketEvent(
       type: WebSocketEventTypeX.fromString(json['type'] as String),
-      data: json['data'],
+      data: json['data'] as Map<String, dynamic>,
     );
   }
 }
@@ -106,27 +102,28 @@ class PresenceEvent {
   factory PresenceEvent.fromJson(Map<String, dynamic> json) {
     return PresenceEvent(
       userId: json['userId'] as String,
-      status: UserStatusX.fromString(json['status'] as String?),
+      status: UserStatusX.fromString(json['status'] as String),
       customStatus: json['customStatus'] as String?,
     );
   }
 }
 
-class ReactionEvent {
+/// `REACTION_ADD` and `REACTION_REMOVE` for channel messages.
+class ChannelReactionEvent {
   final String channelId;
   final String messageId;
   final String userId;
   final String emoji;
 
-  const ReactionEvent({
+  const ChannelReactionEvent({
     required this.channelId,
     required this.messageId,
     required this.userId,
     required this.emoji,
   });
 
-  factory ReactionEvent.fromJson(Map<String, dynamic> json) {
-    return ReactionEvent(
+  factory ChannelReactionEvent.fromJson(Map<String, dynamic> json) {
+    return ChannelReactionEvent(
       channelId: json['channelId'] as String,
       messageId: json['messageId'] as String,
       userId: json['userId'] as String,
@@ -135,19 +132,77 @@ class ReactionEvent {
   }
 }
 
-class MessageDeleteEvent {
+/// `DM_REACTION_ADD` and `DM_REACTION_REMOVE`, which name the conversation.
+class DmReactionEvent {
+  final String conversationId;
+  final String messageId;
+  final String userId;
+  final String emoji;
+
+  const DmReactionEvent({
+    required this.conversationId,
+    required this.messageId,
+    required this.userId,
+    required this.emoji,
+  });
+
+  factory DmReactionEvent.fromJson(Map<String, dynamic> json) {
+    return DmReactionEvent(
+      conversationId: json['conversationId'] as String,
+      messageId: json['messageId'] as String,
+      userId: json['userId'] as String,
+      emoji: json['emoji'] as String,
+    );
+  }
+}
+
+class ChannelMessageDeleteEvent {
   final String channelId;
   final String messageId;
 
-  const MessageDeleteEvent({
+  const ChannelMessageDeleteEvent({
     required this.channelId,
     required this.messageId,
   });
 
-  factory MessageDeleteEvent.fromJson(Map<String, dynamic> json) {
-    return MessageDeleteEvent(
+  factory ChannelMessageDeleteEvent.fromJson(Map<String, dynamic> json) {
+    return ChannelMessageDeleteEvent(
       channelId: json['channelId'] as String,
       messageId: json['messageId'] as String,
     );
+  }
+}
+
+class DmMessageDeleteEvent {
+  final String conversationId;
+  final String messageId;
+
+  const DmMessageDeleteEvent({
+    required this.conversationId,
+    required this.messageId,
+  });
+
+  factory DmMessageDeleteEvent.fromJson(Map<String, dynamic> json) {
+    return DmMessageDeleteEvent(
+      conversationId: json['conversationId'] as String,
+      messageId: json['messageId'] as String,
+    );
+  }
+}
+
+/// The gateway reports notifications read in one of three shapes: for a whole
+/// channel, for every notification, or for a single one.
+class NotificationReadEvent {
+  final String? channelId;
+  final String? id;
+  final bool all;
+
+  const NotificationReadEvent({this.channelId, this.id, this.all = false});
+
+  factory NotificationReadEvent.fromJson(Map<String, dynamic> json) {
+    if (json['all'] == true) return const NotificationReadEvent(all: true);
+    final id = json['id'] as String?;
+    if (id != null) return NotificationReadEvent(id: id);
+    return NotificationReadEvent(channelId: json['channelId'] as String);
   }
 }

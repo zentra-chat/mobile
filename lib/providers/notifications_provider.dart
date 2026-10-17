@@ -28,7 +28,7 @@ class NotificationsNotifier extends Notifier<List<Notification>> {
     switch (event.type) {
       case WebSocketEventType.notification:
         final notification =
-            Notification.fromJson(event.data as Map<String, dynamic>);
+            Notification.fromJson(event.data);
         if (state.any((n) => n.id == notification.id)) return;
         state = [notification, ...state];
       case WebSocketEventType.notificationRead:

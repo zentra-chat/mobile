@@ -5,23 +5,23 @@ class AuthResponse {
   final String accessToken;
   final String refreshToken;
   final String expiresAt;
-  final bool? requires2FA;
+  final bool requires2FA;
 
   const AuthResponse({
     required this.user,
     required this.accessToken,
     required this.refreshToken,
     required this.expiresAt,
-    this.requires2FA,
+    required this.requires2FA,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
       user: FullUser.fromJson(json['user'] as Map<String, dynamic>),
-      accessToken: json['accessToken'] as String? ?? '',
-      refreshToken: json['refreshToken'] as String? ?? '',
-      expiresAt: json['expiresAt'] as String? ?? '',
-      requires2FA: json['requires2FA'] as bool?,
+      accessToken: json['accessToken'] as String,
+      refreshToken: json['refreshToken'] as String,
+      expiresAt: json['expiresAt'] as String,
+      requires2FA: json['requires2FA'] as bool? ?? false,
     );
   }
 }
@@ -80,12 +80,11 @@ class RegisterResponse {
   });
 
   factory RegisterResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>? ?? json;
     return RegisterResponse(
-      requiresEmailVerification: data['requiresEmailVerification'] as bool? ?? false,
-      verificationSent: data['verificationSent'] as bool? ?? false,
-      email: data['email'] as String? ?? '',
-      message: data['message'] as String? ?? '',
+      requiresEmailVerification: json['requiresEmailVerification'] as bool,
+      verificationSent: json['verificationSent'] as bool,
+      email: json['email'] as String,
+      message: json['message'] as String,
     );
   }
 }
@@ -141,9 +140,9 @@ class Session {
   factory Session.fromJson(Map<String, dynamic> json) {
     return Session(
       user: FullUser.fromJson(json['user'] as Map<String, dynamic>),
-      accessToken: json['accessToken'] as String? ?? '',
-      refreshToken: json['refreshToken'] as String? ?? '',
-      expiresAt: json['expiresAt'] as String? ?? '',
+      accessToken: json['accessToken'] as String,
+      refreshToken: json['refreshToken'] as String,
+      expiresAt: json['expiresAt'] as String,
     );
   }
 }

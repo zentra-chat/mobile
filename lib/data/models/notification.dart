@@ -10,11 +10,16 @@ enum NotificationType {
 }
 
 extension NotificationTypeX on NotificationType {
-  static NotificationType fromString(String? value) {
-    return NotificationType.values.firstWhere(
-      (type) => type.name == value,
-      orElse: () => NotificationType.reply,
-    );
+  static NotificationType fromString(String value) {
+    return switch (value) {
+      'mention_user' => NotificationType.mentionUser,
+      'mention_role' => NotificationType.mentionRole,
+      'mention_everyone' => NotificationType.mentionEveryone,
+      'mention_here' => NotificationType.mentionHere,
+      'dm_message' => NotificationType.dmMessage,
+      'reply' => NotificationType.reply,
+      _ => throw ArgumentError.value(value, 'type', 'unknown notification type'),
+    };
   }
 }
 
@@ -49,35 +54,24 @@ class Notification {
     this.actor,
   });
 
-  Notification copyWith({
-    String? id,
-    String? userId,
-    NotificationType? type,
-    String? title,
-    String? body,
-    String? communityId,
-    String? channelId,
-    String? messageId,
-    String? actorId,
-    Map<String, dynamic>? metadata,
-    bool? isRead,
-    String? createdAt,
-    User? actor,
-  }) {
+  /// Direct messages carry the conversation in metadata rather than a channel.
+  String? get conversationId => metadata['conversationId'] as String?;
+
+  Notification copyWith({bool? isRead}) {
     return Notification(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      type: type ?? this.type,
-      title: title ?? this.title,
-      body: body ?? this.body,
-      communityId: communityId ?? this.communityId,
-      channelId: channelId ?? this.channelId,
-      messageId: messageId ?? this.messageId,
-      actorId: actorId ?? this.actorId,
-      metadata: metadata ?? this.metadata,
+      id: id,
+      userId: userId,
+      type: type,
+      title: title,
+      body: body,
+      communityId: communityId,
+      channelId: channelId,
+      messageId: messageId,
+      actorId: actorId,
+      metadata: metadata,
       isRead: isRead ?? this.isRead,
-      createdAt: createdAt ?? this.createdAt,
-      actor: actor ?? this.actor,
+      createdAt: createdAt,
+      actor: actor,
     );
   }
 
@@ -85,15 +79,15 @@ class Notification {
     return Notification(
       id: json['id'] as String,
       userId: json['userId'] as String,
-      type: NotificationTypeX.fromString(json['type'] as String?),
+      type: NotificationTypeX.fromString(json['type'] as String),
       title: json['title'] as String,
       body: json['body'] as String?,
       communityId: json['communityId'] as String?,
       channelId: json['channelId'] as String?,
       messageId: json['messageId'] as String?,
       actorId: json['actorId'] as String?,
-      metadata: json['metadata'] as Map<String, dynamic>? ?? {},
-      isRead: json['isRead'] as bool? ?? false,
+      metadata: json['metadata'] as Map<String, dynamic>? ?? const {},
+      isRead: json['isRead'] as bool,
       createdAt: json['createdAt'] as String,
       actor: json['actor'] == null
           ? null

@@ -30,6 +30,22 @@ class ZentraColors {
   static const onBright = Color(0xFF04140F);
 }
 
+/// Role colours arrive from the backend as hex strings, with or without an
+/// alpha byte and with or without a leading hash.
+Color? parseRoleColor(String? value) {
+  if (value == null || value.isEmpty) return null;
+  final hex = value.trim().replaceFirst('#', '');
+  if (hex.length == 6) {
+    final parsed = int.tryParse('ff$hex', radix: 16);
+    return parsed == null ? null : Color(parsed);
+  }
+  if (hex.length == 8) {
+    final parsed = int.tryParse(hex, radix: 16);
+    return parsed == null ? null : Color(parsed);
+  }
+  return null;
+}
+
 // Dark theme built to match the web client
 final ThemeData zentraTheme = ThemeData(
   useMaterial3: true,
