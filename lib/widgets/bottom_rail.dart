@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/layout.dart';
 import '../config/theme.dart';
+import '../data/models/index.dart' show UnreadCountsX;
+import '../providers/data_providers.dart';
+import '../providers/dm_providers.dart';
 import '../providers/nav_provider.dart';
 import '../providers/notifications_provider.dart';
 
@@ -38,7 +41,20 @@ class BottomRail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifications = ref.watch(notificationsProvider);
-    final unread = notifications.where((n) => !n.isRead).length;
+    final unreadNotifications = notifications.where((n) => !n.isRead).length;
+    final unreadDms = ref
+        .watch(dmConversationsProvider)
+        .fold<int>(0, (total, c) => total + c.unreadCount);
+    final communityId = ref.watch(selectedCommunityIdProvider);
+    final unreadChannels = communityId == null
+        ? 0
+        : (ref.watch(channelUnreadProvider(communityId)).value?.totalUnread ?? 0);
+
+    final badges = <int, int>{
+      kServersTab: unreadChannels,
+      kDmsTab: unreadDms,
+      kNotificationsTab: unreadNotifications,
+    };
 
     return Container(
       decoration: const BoxDecoration(
@@ -56,7 +72,7 @@ class BottomRail extends ConsumerWidget {
                   child: _RailButton(
                     item: _items[i],
                     active: i == index,
-                    badge: i == kNotificationsTab && unread > 0 ? unread : 0,
+                    badge: badges[i] ?? 0,
                     onTap: () => onSelected(i),
                   ),
                 ),

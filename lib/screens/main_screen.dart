@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/layout.dart';
 import '../providers/data_providers.dart';
+import '../providers/dm_providers.dart';
 import '../providers/nav_provider.dart';
 import '../widgets/bottom_rail.dart';
 import '../widgets/channel_sidebar.dart';
+import '../widgets/collapsible_rail.dart';
 import '../widgets/server_rail.dart';
 import 'dm_screen.dart';
 import 'home_screen.dart';
@@ -30,18 +32,28 @@ class MainScreen extends ConsumerWidget {
     final navActions = ref.read(navProvider.notifier);
     final communityId = ref.watch(selectedCommunityIdProvider);
     final channelId = ref.watch(selectedChannelIdProvider);
+    final conversationId = ref.watch(selectedConversationIdProvider);
 
-    // Hide the bottom rail while a channel is open, the way Discord drops it
-    // once you are reading.
-    final showBottomRail = nav.tabIndex != kServersTab || channelId == null;
+    // Reading gets the whole width: both rails slide away the way the web
+    // client drops its server list once a thread is open, and the header's
+    // back button returns to the picker. The rail only belongs to the servers
+    // tab; direct messages, notifications and settings have nothing to switch
+    // between servers for.
+    final reading = channelId != null || conversationId != null;
+    final showServerRail = !reading && nav.tabIndex == kServersTab;
 
     return Scaffold(
       body: Row(
         children: [
-          ServerRail(
-            selectedId: communityId,
-            onSelected: navActions.selectCommunity,
-            onHome: () => navActions.showTab(kDmsTab),
+          // The rail keeps its own width while the slot collapses, so the
+          // list views inside it are never laid out at zero width.
+          CollapsibleRail(
+            visible: showServerRail,
+            child: ServerRail(
+              selectedId: communityId,
+              onSelected: navActions.selectCommunity,
+              onHome: () => navActions.showTab(kDmsTab),
+            ),
           ),
           Expanded(
             child: Stack(
@@ -120,9 +132,9 @@ class MainScreen extends ConsumerWidget {
         duration: kNavDuration,
         curve: Curves.easeOutCubic,
         alignment: Alignment.topCenter,
-        child: showBottomRail
-            ? BottomRail(index: nav.tabIndex, onSelected: navActions.showTab)
-            : const SizedBox.shrink(),
+        child: reading
+            ? const SizedBox.shrink()
+            : BottomRail(index: nav.tabIndex, onSelected: navActions.showTab),
       ),
     );
   }
