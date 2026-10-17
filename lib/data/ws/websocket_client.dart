@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/index.dart';
@@ -36,6 +37,7 @@ class WebSocketClient {
   final Set<String> _activeSubscriptions = {};
   final Map<String, int> _subRefCounts = {};
   final List<String> _messageQueue = [];
+  final Set<String> _unmodelledEvents = {};
 
   void connect() {
     final token = _getAccessToken();
@@ -82,10 +84,24 @@ class WebSocketClient {
       if (trimmed.isEmpty) continue;
       try {
         final json = jsonDecode(trimmed) as Map<String, dynamic>;
-        _eventController.add(WebSocketEvent.fromJson(json));
-      } catch (_) {
-        // Ignore frames that are not valid JSON.
+        final event = WebSocketEvent.fromJson(json);
+        if (event != null) {
+          _eventController.add(event);
+        } else {
+          _logUnmodelledEvent(json['type']);
+        }
+      } catch (error) {
+        debugPrint('WebSocketClient: dropped unparsable frame: $error');
       }
+    }
+  }
+
+  /// Reports each unmodelled event name once, so protocol drift stays visible
+  /// without a line per heartbeat ack.
+  void _logUnmodelledEvent(Object? type) {
+    final name = '$type';
+    if (_unmodelledEvents.add(name)) {
+      debugPrint('WebSocketClient: ignoring unhandled event $name');
     }
   }
 

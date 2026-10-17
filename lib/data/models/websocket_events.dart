@@ -36,8 +36,24 @@ enum WebSocketEventType {
 }
 
 extension WebSocketEventTypeX on WebSocketEventType {
-  static WebSocketEventType fromString(String value) =>
-      WebSocketEventType.values.byName(value.toLowerCase());
+  /// The gateway names events in SCREAMING_SNAKE_CASE, so `DM_MESSAGE_CREATE`
+  /// maps onto the lowerCamelCase enum value `dmMessageCreate`. Returns null
+  /// for event names this client does not model, such as `HEARTBEAT_ACK`.
+  static WebSocketEventType? fromString(String value) {
+    final words = value.toLowerCase().split('_');
+    final name = words.first +
+        words
+            .skip(1)
+            .map((word) => word.isEmpty
+                ? word
+                : '${word[0].toUpperCase()}${word.substring(1)}')
+            .join();
+
+    for (final type in WebSocketEventType.values) {
+      if (type.name == name) return type;
+    }
+    return null;
+  }
 }
 
 class WebSocketEvent {
@@ -46,9 +62,15 @@ class WebSocketEvent {
 
   const WebSocketEvent({required this.type, required this.data});
 
-  factory WebSocketEvent.fromJson(Map<String, dynamic> json) {
+  /// Returns null when the frame names an event this client does not model.
+  static WebSocketEvent? fromJson(Map<String, dynamic> json) {
+    final rawType = json['type'] as String?;
+    final type =
+        rawType == null ? null : WebSocketEventTypeX.fromString(rawType);
+    if (type == null) return null;
+
     return WebSocketEvent(
-      type: WebSocketEventTypeX.fromString(json['type'] as String),
+      type: type,
       data: json['data'] as Map<String, dynamic>,
     );
   }
