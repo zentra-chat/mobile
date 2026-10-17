@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'api_provider.dart';
 import 'data_providers.dart';
+import 'dm_providers.dart';
 
 // Tab order of the bottom rail, also used by the rest of the shell to jump to
 // a section. The shell orders its screens with these, so the rail and the
@@ -35,6 +36,8 @@ class NavNotifier extends Notifier<NavState> {
       closeSidebar();
       return;
     }
+    // Leaving the servers tab means leaving whatever channel was open there.
+    _closeStreams();
     state = state.copyWith(tabIndex: index, sidebarOpen: false);
   }
 
@@ -55,12 +58,13 @@ class NavNotifier extends Notifier<NavState> {
       return;
     }
     community.set(id);
-    ref.read(selectedChannelIdProvider.notifier).set(null);
+    _closeStreams();
     state = state.copyWith(tabIndex: kServersTab, sidebarOpen: true);
   }
 
   /// Picking a channel means reading it, so the shell shows the servers tab
-  /// even when the pick was made from another one.
+  /// even when the pick was made from another one, and the rails get out of
+  /// the way to give the thread the full width.
   Future<void> selectChannel(String communityId, String channelId) async {
     ref.read(selectedChannelIdProvider.notifier).set(channelId);
     state = state.copyWith(tabIndex: kServersTab, sidebarOpen: false);
@@ -70,6 +74,34 @@ class NavNotifier extends Notifier<NavState> {
       debugPrint('Failed to mark channel $channelId as read: $e');
     }
     ref.invalidate(channelUnreadProvider(communityId));
+  }
+
+  /// Leaves the channel and returns to the community's channel list with the
+  /// sidebar already open, which is where the pick came from.
+  void closeChannel() {
+    ref.read(selectedChannelIdProvider.notifier).set(null);
+    state = state.copyWith(sidebarOpen: true);
+  }
+
+  Future<void> selectConversation(String conversationId) async {
+    ref.read(selectedConversationIdProvider.notifier).set(conversationId);
+    ref.read(dmConversationsProvider.notifier).markRead(conversationId);
+    state = state.copyWith(tabIndex: kDmsTab, sidebarOpen: false);
+    try {
+      await ref.read(apiClientProvider).markDmRead(conversationId);
+    } catch (e) {
+      debugPrint('Failed to mark conversation $conversationId as read: $e');
+    }
+  }
+
+  void closeConversation() {
+    ref.read(selectedConversationIdProvider.notifier).set(null);
+    state = state.copyWith(tabIndex: kDmsTab, sidebarOpen: false);
+  }
+
+  void _closeStreams() {
+    ref.read(selectedChannelIdProvider.notifier).set(null);
+    ref.read(selectedConversationIdProvider.notifier).set(null);
   }
 }
 

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/theme.dart';
 import '../data/models/index.dart';
+import '../providers/dm_providers.dart';
+import '../providers/nav_provider.dart';
 import 'avatar.dart';
 
 /// Profile sheet shown when a mention, avatar or author name is tapped.
@@ -184,5 +187,27 @@ class _UserCard extends StatelessWidget {
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+}
+
+/// Creates or reuses the direct message conversation with [user] and opens
+/// it. Backs the Message button on a profile card.
+Future<void> openDirectMessage(
+  BuildContext context,
+  WidgetRef ref,
+  User user,
+) async {
+  try {
+    final conversation = await ref
+        .read(dmConversationsProvider.notifier)
+        .openWith(user);
+    await ref
+        .read(navProvider.notifier)
+        .selectConversation(conversation.id);
+  } catch (e) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Could not open a conversation: $e')),
+    );
   }
 }
