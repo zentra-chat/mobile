@@ -8,6 +8,7 @@ import '../data/storage/token_storage.dart';
 import '../data/ws/websocket_client.dart';
 import 'api_provider.dart';
 import 'instance_provider.dart';
+import 'push_provider.dart';
 
 enum AuthStatus { unauthenticated, authenticating, authenticated }
 
@@ -134,6 +135,8 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Dropped before the session ends, since the call needs to be authorised.
+    await ref.read(pushRegistrationProvider.notifier).unregister();
     try {
       await _api.logout();
     } catch (_) {
@@ -143,6 +146,9 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   // Called when the API layer determines the session is no longer valid.
+  //
+  // The push device stays registered, since removing it needs the session being
+  // dropped here. The next account to sign in on this device takes it over.
   void forceLogout() {
     _ws.disconnect();
     _clearLocal();

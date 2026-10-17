@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "370173876199",
+    "project_id": "zentra-c9105",
+    "storage_bucket": "zentra-c9105.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370173876199:android:f81352bf7d8e2577788f42",
+        "android_client_info": {
+          "package_name": "com.zentra.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3SBFzb5EltRqswkdFUWhZM1dQeFR9Vys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

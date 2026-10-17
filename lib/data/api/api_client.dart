@@ -628,6 +628,35 @@ class ApiClient {
     await _run(() => _dio.delete('/notifications/$id'), (_) => null);
   }
 
+  // Push devices
+
+  /// Registers this device so the gateway can deliver notifications while the
+  /// app is closed. Safe to call repeatedly, the gateway upserts on token.
+  Future<void> registerPushDevice({
+    required String platform,
+    required String token,
+  }) async {
+    await _run(
+      () => _dio.post('/push/devices', data: {
+        'platform': platform,
+        'token': token,
+      }),
+      (_) => null,
+    );
+  }
+
+  /// Removes a device token, called on logout so the next account signed in on
+  /// a shared device receives its own notifications.
+  Future<void> unregisterPushDevice(String token) async {
+    await _run(
+      () => _dio.delete(
+        '/push/devices',
+        queryParameters: {'token': token},
+      ),
+      (_) => null,
+    );
+  }
+
   // Status
 
   // Probes a backend for reachability. Mirrors the web client, hitting the

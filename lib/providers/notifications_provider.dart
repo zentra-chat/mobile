@@ -83,16 +83,17 @@ class NotificationsNotifier extends Notifier<List<Notification>> {
   }
 
   Future<void> _post(Notification notification) async {
-    final selfId = ref.read(authProvider).session?.user.id;
-    if (notification.actorId == selfId) return;
-    final open = ref.read(activeStreamIdProvider);
-    if (open != null &&
-        (open == notification.channelId ||
-            open == notification.conversationId)) {
+    final redundant = isRedundantNotification(
+      selfId: ref.read(authProvider).session?.user.id,
+      activeStreamId: ref.read(activeStreamIdProvider),
+      actorId: notification.actorId,
+      streamId: notification.conversationId ?? notification.channelId,
+    );
+    // While the app is in front the notification is already on screen.
+    if (redundant ||
+        ref.read(lifecycleProvider) == AppLifecycleState.resumed) {
       return;
     }
-    if (ref.read(lifecycleProvider) == AppLifecycleState.resumed) return;
-
     await ref.read(notificationServiceProvider).show(notification);
   }
 
@@ -134,3 +135,22 @@ final activeStreamIdProvider = Provider<String?>((ref) {
   if (channelId != null) return channelId;
   return ref.watch(selectedConversationIdProvider);
 });
+
+/// Whether an incoming notification repeats what the user can already see: it
+/// came from the user themselves, or it belongs to the conversation that is
+/// open right now.
+///
+/// Shared by the websocket and push paths so the two cannot disagree about
+/// what counts as redundant.
+///
+/// Takes the resolved values rather than a ref, since it is reached from both
+/// a notifier and a widget.
+bool isRedundantNotification({
+  required String? selfId,
+  required String? activeStreamId,
+  String? actorId,
+  String? streamId,
+}) {
+  if (actorId != null && actorId == selfId) return true;
+  return activeStreamId != null && activeStreamId == streamId;
+}

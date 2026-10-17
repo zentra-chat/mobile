@@ -33,7 +33,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-    </application>
+        <!-- Required by firebase_messaging to obtain the installation ID that
+             backs the FCM registration token. Without it register() throws
+             IllegalStateException and no token is ever issued. -->
+        <meta-data
+            android:name="firebase_messaging_installation_id_enabled"
+            android:value="true" />
+        </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
